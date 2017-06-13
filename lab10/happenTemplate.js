@@ -12,7 +12,7 @@ function amPM() {
 }
 
 function dblDgtHours() {
-	if (d.getHours() > 10) {
+	if (d.getHours() > 9) {
 		return '' + (d.getHours());
 	}
 	else {
@@ -21,7 +21,7 @@ function dblDgtHours() {
 }
 
 function dblDgtMinutes() {
-	if (d.getMinutes() > 10) {
+	if (d.getMinutes() > 9) {
 		return '' + (d.getMinutes());
 	} else {
 		return '0' + (d.getMinutes());
@@ -29,21 +29,20 @@ function dblDgtMinutes() {
 }
 
 function dblDigitSeconds() {
-	if (d.getSeconds() < 9) {
-		return '0' + (d.getSeconds());
-	} else {
+	if (d.getSeconds() > 9) {
 		return '' + (d.getSeconds());
+	} else {
+		return '0' + (d.getSeconds());
 	}
 }
 
 function dblDigitMonth() {
-	if (d.getMonth() < 9) {
-		return '0' + (d.getMonth() +1);
+	if (d.getMonth() > 10) {
+		return (d.getMonth() + 1).toString();
 	} else {
-		return d.getMonth() +1;
+		return '0' + (d.getMonth() + 1).toString();
 	}
 }
-
 
 
 var library = (function () {
@@ -63,32 +62,33 @@ var library = (function () {
 				Time: (function () {
 					return {
 						WithSeconds: function () {
-							
-							
-							if (d.getHours() > 13) {
+
+
+							if (d.getHours() > 12) {
 								return '' + (d.getHours() - 12 + ':' + dblDgtMinutes() + ':' + dblDigitSeconds() + ' ' + amPM());
-						} else {
-							return '' + (d.getHours() + ':' + dblDgtMinutes() + ':' + dblDigitSeconds() + ' ' + amPM());
-						}
+							} else {
+								return '' + (d.getHours() + ':' + dblDgtMinutes() + ':' + dblDigitSeconds() + ' ' + amPM());
+							}
 
 						},
-						WithOutSeconds: function () { 
-							if (d.getHours() > 13) {
+						WithOutSeconds: function () {
+							if (d.getHours() > 12) {
 								return '' + (d.getHours() - 12 + ':' + dblDgtMinutes() + ' ' + amPM());
-						} else {
-							return '' + (d.getHours() + ':' + dblDgtMinutes() + ' ' + amPM());
-						}
+							} else {
+								return '' + (d.getHours() + ':' + dblDgtMinutes() + ' ' + amPM());
+							}
 
 						}
 					}
 				})(),
 				MDY: (function () {
 					return {
-						Numeral: function () { 
+						Numeral: function () {
 							return d.getMonth() + 1 + '/' + d.getDate() + '/' + d.getFullYear();
-						 },
-						Name: function () { 
-							return month[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear(); }
+						},
+						Name: function () {
+							return month[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+						}
 					}
 				})(),
 			}
@@ -129,23 +129,24 @@ var library = (function () {
 					return '' + d.getHours();
 				},
 				TwelveHour: function () {
-					if (d.getHours() >= 13) {
-						return '' + (d.getHours() - 12);
-					} else {
-						return '' + (d.getHours());
+					let hours = new Date().getHours();
+					hours %= 12
+					if (hours === 0) {
+						hours = 12;
 					}
+					return hours.toString();
 				},
 				AMPM: (function () {
 					return {
 						UpperCase: function () {
-							if (d.getHours() > 12) {
+							if (d.getHours() > 11) {
 								return 'PM';
 							} else {
 								return 'AM';
 							}
 						},
 						LowerCase: function () {
-							if (d.getHours() > 12) {
+							if (d.getHours() > 11) {
 								return 'pm';
 							} else {
 								return 'am';
@@ -169,7 +170,11 @@ var library = (function () {
 					var dayTwoAbbr = (dayOfTheWeek[d.getDay()]);
 					return dayTwoAbbr.substring(0, 2);
 				},
-				WeekOfYear: function () { }
+				WeekOfYear: function () {
+					var first = new Date(d.getFullYear(), 0, 1);
+					var theDay = Math.round(((d - first) / 1000 / 60 / 60 / 24) + .5, 0).toString();
+					return Math.ceil(theDay / 7).toString();
+				}
 			}
 		})(),
 		Month: (function () {
@@ -226,8 +231,24 @@ var library = (function () {
 				DayOfYear: (function () {
 					return {
 						Numeral: function () {
+							var first = new Date(d.getFullYear(), 0, 1);
+							var theDay = Math.round(((d - first) / 1000 / 60 / 60 / 24) + .5, 0).toString();
+							return theDay;
 						},
-						Ordinal: function () { }
+						Ordinal: function () {
+							var first = new Date(d.getFullYear(), 0, 1);
+							var theDay = Math.round(((d - first) / 1000 / 60 / 60 / 24) + .5, 0).toString();
+							function nth(d) {
+								if (theDay > 3 && theDay < 21) return  theDay +'th';
+								switch (theDay % 10) {
+									case 1: return theDay +"st";
+									case 2: return theDay +"nd";
+									case 3: return theDay + "rd";
+									default: return theDay +"th";
+								}
+							}
+							 return nth(d);
+						}
 					}
 				})(),
 				YearFull: function () {
@@ -239,7 +260,7 @@ var library = (function () {
 			}
 		})(),
 		Defaults: function () {
-				return '' +(d.getFullYear() + "-" + dblDigitMonth() + "-" + d.getDate() + "T" + dblDgtHours() + ":" + dblDgtMinutes() + ":" + dblDigitSeconds());
+			return '' + (d.getFullYear() + "-" + dblDigitMonth() + "-" + d.getDate() + "T" + dblDgtHours() + ":" + dblDgtMinutes() + ":" + dblDigitSeconds());
 		}
-	}	
+	}
 })();
